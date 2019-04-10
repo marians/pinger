@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -16,9 +17,11 @@ import (
 // Check represents an HTTP endpoint to be checked
 type Check struct {
 	// URL is the URL of the endpoint
-	URL string `yaml:url`
+	URL string `json:"url"`
 	// Method is the HTTP method to use
-	Method string `yaml:method`
+	Method string `json:"method"`
+	// LastSucces is the time the check was last successful
+	LastSuccess string `json:"last_success"`
 }
 
 // Checks represents our list of checks as defined in the config,
@@ -71,6 +74,35 @@ func main() {
 		log.Fatalf("Cannot connect to redis on localhost:6379.")
 	}
 
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		c := []Check{}
+		for _, check := range Checks {
+			key := fmt.Sprintf("%s %s", check.Method, check.URL)
+			val, err := redisClient.Get(key).Result()
+			if err == nil {
+				c = append(c, Check{Method: check.Method, URL: check.URL, LastSuccess: val})
+			}
+		}
+
+		w.Header().Add("Content-type", "application/json")
+		b, err := json.Marshal(c)
+		if err != nil {
+			log.Printf("Error when encoding JSON: %s", err)
+		}
+		w.Write(b)
+
+	})
+
+	// run web server
+	go func() {
+		log.Println("Serving on port 8080")
+		err := http.ListenAndServe(":8080", nil)
+		if err != nil {
+			log.Fatalf("Error in HTTP server: %s", err)
+		}
+	}()
+
+	// run checks loop
 	for {
 		ReadConfig(args[0])
 

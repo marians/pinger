@@ -1,0 +1,22 @@
+version: '3'
+services:
+  pinger:
+    image: quay.io/marian/pinger
+    command: /etc/config/config.yaml
+    volumes:
+      - ${PWD}/config.yaml:/etc/config/config.yaml
+    ports:
+      - 8080:8080
+    depends_on:
+      - redis
+    links:
+      - redis:localhost
+    restart: on-failure
+  redis:
+    image: redis
+    restart: on-failure
+  rebrow:
+    image: marian/rebrow
+    restart: on-failure
+    ports:
+      - 5001:5001

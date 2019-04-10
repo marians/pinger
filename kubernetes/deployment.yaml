@@ -19,6 +19,8 @@ spec:
         image: quay.io/marian/pinger:latest
         args:
         - /etc/config/config.yaml
+        ports:
+        - containerPort: 8080
         volumeMounts:
         - name: config-volume
           mountPath: /etc/config
@@ -27,6 +29,8 @@ spec:
             memory: 30Mi
       - name: redis
         image: redis:latest
+        ports:
+        - containerPort: 6379
         resources:
           limits:
             memory: 20Mi
