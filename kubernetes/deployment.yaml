@@ -27,6 +27,12 @@ spec:
         resources:
           limits:
             memory: 30Mi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
       - name: redis
         image: redis:latest
         ports:
@@ -34,6 +40,11 @@ spec:
         resources:
           limits:
             memory: 20Mi
+        livenessProbe:
+          tcpSocket:
+            port: 6379
+          initialDelaySeconds: 5
+          periodSeconds: 20
       volumes:
       - name: config-volume
         configMap:
