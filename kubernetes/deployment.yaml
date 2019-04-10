@@ -6,6 +6,9 @@ metadata:
     app: pinger
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: pinger
   template:
     metadata:
       labels:
@@ -13,11 +16,24 @@ spec:
     spec:
       containers:
       - name: pinger
-        image: quay.io/marians/pinger:latest
+        image: quay.io/marian/pinger:latest
+        args:
+        - /etc/config/config.yaml
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/config
+        resources:
+          limits:
+            memory: 30Mi
+      - name: redis
+        image: redis:latest
+        resources:
+          limits:
+            memory: 20Mi
       volumes:
       - name: config-volume
         configMap:
           name: pinger-config
           items:
           - key: config.yaml
-            path: /config.yaml
+            path: config.yaml
