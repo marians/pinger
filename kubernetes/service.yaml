@@ -1,7 +1,9 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: pinger-service
+  name: pinger
+  labels:
+    app: pinger
 spec:
   selector:
     app: pinger

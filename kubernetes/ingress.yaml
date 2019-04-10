@@ -2,6 +2,8 @@ kind: Ingress
 apiVersion: extensions/v1beta1
 metadata:
   name: pinger
+  labels:
+    app: pinger
 spec:
   rules:
   - host: pinger.g5igw.k8s.gollum.westeurope.azure.gigantic.io
