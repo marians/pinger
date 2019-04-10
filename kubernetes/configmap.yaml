@@ -1,0 +1,15 @@
+kind: ConfigMap  
+apiVersion: v1  
+metadata:  
+  name: pinger-config
+  labels:
+    app: pinger
+data:
+  config.yaml: |
+    - url: https://www.google.com/
+    - url: https://httpbin.org/post
+      method: POST
+    - url: https://httpbin.org/status/400
+    - url: https://httpbin.org/status/500
+    - url: https://httpbin.org/status/200
+      method: BADMETHOD
