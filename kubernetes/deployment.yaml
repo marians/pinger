@@ -9,6 +9,7 @@ spec:
   selector:
     matchLabels:
       app: pinger
+  revisionHistoryLimit: 3
   template:
     metadata:
       labels:
@@ -19,17 +20,32 @@ spec:
         image: quay.io/marian/pinger:latest
         args:
         - /etc/config/config.yaml
+        ports:
+        - containerPort: 8080
         volumeMounts:
         - name: config-volume
           mountPath: /etc/config
         resources:
           limits:
             memory: 30Mi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
       - name: redis
         image: redis:latest
+        ports:
+        - containerPort: 6379
         resources:
           limits:
             memory: 20Mi
+        livenessProbe:
+          tcpSocket:
+            port: 6379
+          initialDelaySeconds: 5
+          periodSeconds: 20
       volumes:
       - name: config-volume
         configMap:
