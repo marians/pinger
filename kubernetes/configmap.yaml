@@ -6,10 +6,6 @@ metadata:
     app: pinger
 data:
   config.yaml: |
-    - url: https://www.google.com/
-    - url: https://httpbin.org/post
-      method: POST
-    - url: https://httpbin.org/status/400
-    - url: https://httpbin.org/status/500
-    - url: https://httpbin.org/status/200
-      method: BADMETHOD
+    - url: https://schaufenster-service.now.sh/events/?ical_url=https%3A%2F%2Fgruene-roesrath.de%2Ftermine%2Fcal%2Fics%2F%3Ftype%3D150%26tx_cal_controller%255Bcalendar%255D%3D649&num=1&charset=utf-8
+    - url: https://green-spider.netzbegruenung.de/
+      method: HEAD

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-redis/redis"
 	"gopkg.in/yaml.v2"
 )
 
@@ -21,7 +23,11 @@ type Check struct {
 
 // Checks represents our list of checks as defined in the config,
 // with defaults applied.
-var Checks = []Check{}
+var (
+	Checks     = []Check{}
+	OneDay     = time.Duration(24) * time.Hour
+	TimeFormat = "2006-01-02T15:04:05-0700"
+)
 
 // ReadConfig reads our checks configuration and applies defaults where
 // details are not specified.
@@ -55,6 +61,16 @@ func main() {
 
 	client := &http.Client{}
 
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
+	_, err := redisClient.Ping().Result()
+	if err != nil {
+		log.Fatalf("Cannot connect to redis on localhost:6379.")
+	}
+
 	for {
 		ReadConfig(args[0])
 
@@ -68,8 +84,18 @@ func main() {
 				resp, err := client.Do(req)
 				if err != nil {
 					log.Printf("%s %s failed: %s", check.Method, check.URL, err)
-				} else if resp != nil && resp.StatusCode >= 400 {
-					log.Printf("%s %s HTTP Status %d", check.Method, check.URL, resp.StatusCode)
+				} else if resp != nil {
+					if resp.StatusCode >= 400 {
+						log.Printf("%s %s HTTP Status %d", check.Method, check.URL, resp.StatusCode)
+					} else {
+						// store latest success in DB
+						timeString := time.Now().UTC().Format(TimeFormat)
+						key := fmt.Sprintf("%s %s", check.Method, check.URL)
+						err := redisClient.Set(key, timeString, OneDay).Err()
+						if err != nil {
+							log.Fatalf("Error writing data to redis: %s", err)
+						}
+					}
 				}
 			}(check)
 		}
